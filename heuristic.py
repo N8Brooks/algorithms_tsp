@@ -14,7 +14,6 @@ def greedy(locs):
     Returns:
         (list): a list of locations describing the greedy based tsp path found
     """
-    
     # create a memo of each locations number
     remaining_locs = list(range(1, len(locs)))
     # make a copy of their distances for editing

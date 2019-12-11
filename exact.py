@@ -15,8 +15,10 @@ def brute(locs):
     Returns:
         (tuple): tsp path based on O(n!) brute force search
     """
+    # trivial cases which otherwise error
     n = len(locs)
     if n < 2: return [0] if n is 1 else []
+    # min path based on distance of 'clockwise' permutations
     return min(islice(permutations(range(n), n), f(n)//2), key=locs.distance)
 
 def recursive(locs):
@@ -27,9 +29,11 @@ def recursive(locs):
         (list): tsp path based on O(n!) recursive brute force search
     """
     def worker(i, s):
+        # gone to every loc
         if not s:
             return locs.dist[i][0], [0]
         
+        # consider all nodes not gone to
         min_path, min_distance = None, float('inf')
         for x, j in enumerate(s):
             distance, path = worker(x, s[:x] + s[x+1:])
@@ -37,8 +41,10 @@ def recursive(locs):
             if distance < min_distance:
                 min_distance, min_path = distance, path + [j]
         
+        # return minimal
         return min_distance, min_path
 
+    # trivial case otherwise call worker
     return list() if len(locs) < 1 else worker(0, list(range(1, len(locs))))[1]
 
 def dynamic(locs):
@@ -51,12 +57,15 @@ def dynamic(locs):
     dp = dict()
     
     def worker(i, s):
+        # it has traveled to all locs
         if s == (1 << len(locs)) - 1:
             return locs.dist[i][0], [0]
         else:
+            # it has already computed this state
             if (i, s) in dp:
                 return dp[(i, s)]
             
+            # consider all nodes not gone to
             min_distance, min_path = float('inf'), None
             for j in range(len(locs)):
                 if s & (1 << j):
@@ -70,9 +79,10 @@ def dynamic(locs):
             dp[(i, s)] = min_distance, min_path
             return min_distance, min_path
     
+    # trivial case otherwise call worker
     return list() if len(locs) < 1 else worker(0, 1)[1]
 
-# list of tsp algorithms in this script
+# list of tsp algorithms in this scripts
 algorithms = [brute, recursive, dynamic]
 
 if __name__ == '__main__':
@@ -86,6 +96,7 @@ if __name__ == '__main__':
     for i in range(10):
         locs = atlas(0, 1000, i)
         distances = [locs.distance(algo(locs)) for algo in algorithms]
+        print(distances)
         assert all((distances[0] - x) < 1e-8 for x in distances[1:])
     
     
