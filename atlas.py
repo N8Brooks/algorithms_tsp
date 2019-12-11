@@ -27,5 +27,6 @@ class atlas:
         plt.show()
     
     def distance(self, path):
+        if self.n is 0: return 0
         return sum(self.dist[a][b] for a,b in zip(path, path[1:])) + \
                       self.dist[path[-1]][path[0]]
