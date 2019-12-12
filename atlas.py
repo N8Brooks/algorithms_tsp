@@ -39,5 +39,6 @@ class atlas:
     
     def distance(self, path):
         if self.n is 0: return 0
+        assert self.n == len(path)
         return sum(self.dist[a][b] for a,b in zip(path, path[1:])) + \
                       self.dist[path[-1]][path[0]]

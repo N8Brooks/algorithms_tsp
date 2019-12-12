@@ -15,7 +15,7 @@ def aco_iterative(locs, count=16, factor=0.1, decay=0.9):
     Arguments:
         locs (atlas): atlas type object
         count (int): how many ants to use
-        factor (float): pheromone factor for the ants
+        factor (float): pheromone factor for the ants must be > 0
         decay (float): decay factor for phermomone between 0. and 1.
     Yields:
         list: best path for this iteration
@@ -51,7 +51,7 @@ def aco_iterative(locs, count=16, factor=0.1, decay=0.9):
             for a, b in zip(path, path[1:] + [0]):
                 delta[a][b] += factor / dist
         
-        # update pheromones for decay, and symmetric paths
+        # update pheromones for decay, and symmetric delta pheromones
         pheromone = pheromone * decay + delta + delta.transpose()
         
         yield min_path
