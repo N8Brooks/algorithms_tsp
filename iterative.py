@@ -6,9 +6,9 @@ Created on Wed Dec 11 10:06:15 2019
 """
 
 import numpy as np
-import random
-from itertools import accumulate
+from itertools import accumulate, combinations
 from bisect import bisect_left
+import random
 from random import sample, choices, randrange
 
 def aco(locs, count=8, factor=1.0, decay=0.66):
@@ -57,12 +57,12 @@ def aco(locs, count=8, factor=1.0, decay=0.66):
         
         yield min_path
 
-def genetic(locs, select=20, size=100):
+def genetic(locs, select=3, size=100):
     """
     Arguments:
         locs (atlas): atlas type object
         select (int): how many members to keep after each generation
-        size (int): the max size of the population
+        size (int): the size of the population in each generation
     Yields:
         list: path found using gentic algorithm with SCX breeding
     """
@@ -75,10 +75,10 @@ def genetic(locs, select=20, size=100):
         last = randrange(length)
         path, legit = [last], set(range(length)) - {last}
         
-        for i in range(1, length):
+        for i in range(length - 1):
             # find shorter first legitamate in either parent
-            a = next((x for x in par_a[i:] if x in legit), next(iter(legit)))
-            b = next((x for x in par_b[i:] if x in legit), next(iter(legit)))
+            a = next((x for x in par_a[i:] if x in legit), *sample(legit, 1))
+            b = next((x for x in par_b[i:] if x in legit), *sample(legit, 1))
             last = a if locs.dist[last][a] < locs.dist[last][b] else b
             
             # add to path and remove from legitamate
@@ -86,7 +86,7 @@ def genetic(locs, select=20, size=100):
             path.append(last)
         
         # mutate
-        a, b = random.sample(range(length), 2)
+        a, b = sample(range(length), 2)
         path[a], path[b] = path[b], path[a]
         
         return path
@@ -97,7 +97,64 @@ def genetic(locs, select=20, size=100):
         yield pop[0]
         # breed those selected
         pop = [breed(*choices(pop[:select], k=2)) for _ in range(size)]
+
+def two_opt(locs):
+    length = len(locs) + 1
+    path = min_path = list(range(len(locs)))
+    dist = min_dist = locs.distance(path)
+    while True:
+        for i, j in combinations(range(length), r=2):
+            yield path
+            path = min_path[:i] + min_path[i:j][::-1] + min_path[j:]
+            dist = locs.distance(path)
+            if dist < min_dist:
+                min_dist, min_path = dist, path
+
+def three_opt(locs):
+    """NOT IMPLEMENTED"""
+    def all_segments(n: int):
+        """Generate all segments combinations"""
+        return ((i, j, k)
+            for i in range(n)
+            for j in range(i + 2, n)
+            for k in range(j + 2, n + (i > 0)))
     
+    def distance(i, j):
+        return abs(j - i)
+    
+    def reverse_segment_if_better(tour, i, j, k):
+        """If reversing tour[i:j] would make the tour shorter, then do it."""
+        # Given tour [...A-B...C-D...E-F...]
+        A, B, C, D, E, F = tour[i-1], tour[i], tour[j-1], tour[j], tour[k-1], tour[k % len(tour)]
+        d0 = distance(A, B) + distance(C, D) + distance(E, F)
+        d1 = distance(A, C) + distance(B, D) + distance(E, F)
+        d2 = distance(A, B) + distance(C, E) + distance(D, F)
+        d3 = distance(A, D) + distance(E, B) + distance(C, F)
+        d4 = distance(F, B) + distance(C, D) + distance(E, A)
+    
+        if d0 > d1:
+            tour[i:j] = reversed(tour[i:j])
+            return -d0 + d1
+        elif d0 > d2:
+            tour[j:k] = reversed(tour[j:k])
+            return -d0 + d2
+        elif d0 > d4:
+            tour[i:k] = reversed(tour[i:k])
+            return -d0 + d4
+        elif d0 > d3:
+            tmp = tour[j:k] + tour[i:j]
+            tour[i:k] = tmp
+            return -d0 + d3
+        return 0
+    
+    path = range(len(locs))
+    while True:
+        delta = 0
+        for (a, b, c) in all_segments(len(locs)):
+            delta += reverse_segment_if_better(locs, a, b, c)
+        if delta >= 0:
+            break
+    return path
 
 def aco_final(locs, args={}, show='', until='exp', func=genetic):
     """
@@ -147,7 +204,6 @@ def aco_final(locs, args={}, show='', until='exp', func=genetic):
     elif until.isdigit():
         for i in range(int(until)):
             iterate_display(i)
-            
     else:
         print('Invalid <until> specified.')
             
