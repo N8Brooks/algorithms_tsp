@@ -2,7 +2,7 @@
 """
 Created on Tue Dec 10 16:26:42 2019
 
-@author: DSU
+@author: Nathan
 """
 
 from itertools import permutations, islice
