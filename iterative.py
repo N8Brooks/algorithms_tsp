@@ -99,11 +99,11 @@ def genetic(locs, select=3, size=100):
         pop = [breed(*choices(pop[:select], k=2)) for _ in range(size)]
 
 def two_opt(locs):
-    length = len(locs) + 1
+    indexes = range(len(locs) + 1)
     path = min_path = list(range(len(locs)))
     dist = min_dist = locs.distance(path)
     while True:
-        for i, j in combinations(range(length), r=2):
+        for i, j in combinations(indexes, r=2):
             yield path
             path = min_path[:i] + min_path[i:j][::-1] + min_path[j:]
             dist = locs.distance(path)
