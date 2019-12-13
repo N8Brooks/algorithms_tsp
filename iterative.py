@@ -9,8 +9,9 @@ import numpy as np
 import random
 from itertools import accumulate
 from bisect import bisect_left
+from random import sample, choices, randrange
 
-def aco_iterative(locs, count=8, factor=512, decay=0.64):
+def aco(locs, count=8, factor=1.0, decay=0.66):
     """
     Arguments:
         locs (atlas): atlas type object
@@ -22,7 +23,7 @@ def aco_iterative(locs, count=8, factor=512, decay=0.64):
     """
     
     # residual pheromone and current iteration pheromone
-    pheromone = np.full_like(locs.dist, factor)
+    pheromone = np.ones_like(locs.dist)
     delta = np.empty_like(pheromone)
     
     while True:
@@ -56,7 +57,49 @@ def aco_iterative(locs, count=8, factor=512, decay=0.64):
         
         yield min_path
 
-def aco_final(locs, args={}, show='', until='exp'):
+def genetic(locs, select=20, size=100):
+    """
+    Arguments:
+        locs (atlas): atlas type object
+        select (int): how many members to keep after each generation
+        size (int): the max size of the population
+    Yields:
+        list: path found using gentic algorithm with SCX breeding
+    """
+    # intial random paths
+    pop = [sample(range(len(locs)), len(locs)) for _ in range(size)]
+    length = len(locs)
+    
+    def breed(par_a, par_b):
+        # tsp path, last used node, set of not used locations
+        last = randrange(length)
+        path, legit = [last], set(range(length)) - {last}
+        
+        for i in range(1, length):
+            # find shorter first legitamate in either parent
+            a = next((x for x in par_a[i:] if x in legit), next(iter(legit)))
+            b = next((x for x in par_b[i:] if x in legit), next(iter(legit)))
+            last = a if locs.dist[last][a] < locs.dist[last][b] else b
+            
+            # add to path and remove from legitamate
+            legit.remove(last)
+            path.append(last)
+        
+        # mutate
+        a, b = random.sample(range(length), 2)
+        path[a], path[b] = path[b], path[a]
+        
+        return path
+
+    while True:
+        # sort by fitness and yield best result
+        pop.sort(key=locs.distance)
+        yield pop[0]
+        # breed those selected
+        pop = [breed(*choices(pop[:select], k=2)) for _ in range(size)]
+    
+
+def aco_final(locs, args={}, show='', until='exp', func=genetic):
     """
     Arguments:
         locs (atlas): atlas type object
@@ -74,7 +117,7 @@ def aco_final(locs, args={}, show='', until='exp'):
         list: the best path
     """
     min_dist, min_path = float('inf'), None
-    iter_path = iter(aco_iterative(locs, **args))
+    iter_path = iter(func(locs, **args))
     
     def iterate_display(i):
         nonlocal min_dist, min_path
