@@ -88,8 +88,8 @@ def christofide(locs, nn=False):
         extra = Counter(path)
         for key, val in extra.items():
             if val < 2: continue
-            within = [step(i) for i, x in enumerate(path) if x == key]
-            within = within[min(enumerate(within), key=lambda x: x[1])[0]]
+            within = [(step(i),i) for i, x in enumerate(path) if x == key]
+            within = min(within, key=lambda x: x[0])[1]
             path = [x for x in path[:within] if x != key] + [key] + \
                     [x for x in path[within+1:] if x != key]
     else:
