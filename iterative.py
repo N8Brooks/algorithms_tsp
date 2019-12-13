@@ -99,6 +99,12 @@ def genetic(locs, select=3, size=100):
         pop = [breed(*choices(pop[:select], k=2)) for _ in range(size)]
 
 def two_opt(locs):
+    """
+    Arguments:
+        locs (atlas): atlas type object
+    Yields:
+        list: the current path based on 2-opt heuristic
+    """
     indexes = range(len(locs) + 1)
     path = min_path = list(range(len(locs)))
     dist = min_dist = locs.distance(path)
