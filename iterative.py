@@ -10,7 +10,7 @@ import random
 from itertools import accumulate
 from bisect import bisect_left
 
-def aco_iterative(locs, count=16, factor=0.1, decay=0.9):
+def aco_iterative(locs, count=8, factor=512, decay=0.64):
     """
     Arguments:
         locs (atlas): atlas type object
@@ -63,7 +63,8 @@ def aco_final(locs, args={}, show='', until='exp'):
         args (dict): args for the iterative tsp function call
         show (str): which paths to display
             '5': display best every (int) iterations
-            'best': displays path if it is an improvement
+            'improve': displays path if it is an improvement
+            'best': displays the best generation of all generated
             'all': displays path after each iteration
             'x': displays no paths
         until (str): 
@@ -84,7 +85,7 @@ def aco_final(locs, args={}, show='', until='exp'):
         if dist < min_dist:
             change = True
             min_dist, min_path = dist, path
-            if show == 'best':
+            if show == 'improve':
                 locs.display(min_path,title=f'Gen: {i:3} - {min_dist:.1f}')
         if show == 'all':
             locs.display(path, title=f'Gen: {i:3} - {min_dist:.1f}')
@@ -107,6 +108,8 @@ def aco_final(locs, args={}, show='', until='exp'):
     else:
         print('Invalid <until> specified.')
             
+    if show == 'best':
+        locs.display(min_path,title=f'Gen: {i:3} - {min_dist:.1f}')
     
     return min_path
     
