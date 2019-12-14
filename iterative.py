@@ -5,11 +5,15 @@ Created on Wed Dec 11 10:06:15 2019
 @author: Nathan
 """
 
+
+
 import numpy as np
+import random
+
+from random import sample, choices, randrange
+from heuristic import greedy
 from itertools import accumulate, combinations
 from bisect import bisect_left
-import random
-from random import sample, choices, randrange
 
 def aco(locs, count=8, factor=1.0, decay=0.66):
     """
@@ -55,9 +59,9 @@ def aco(locs, count=8, factor=1.0, decay=0.66):
         # update pheromones for decay, and symmetric delta pheromones
         pheromone = pheromone * decay + delta + delta.transpose()
         
-        yield min_path
+        yield min_path    
 
-def genetic(locs, select=3, size=100):
+def genetic(locs, select=33, size=100):
     """
     Arguments:
         locs (atlas): atlas type object
@@ -98,50 +102,53 @@ def genetic(locs, select=3, size=100):
         # breed those selected
         pop = [breed(*choices(pop[:select], k=2)) for _ in range(size)]
 
-def two_opt(locs):
+def two_opt(locs, nn=False):
     """
     Arguments:
         locs (atlas): atlas type object
+        nn (bool): initialize path as nearest neighbor greedy path
     Yields:
         list: the current path based on 2-opt heuristic
     """
-    indexes = range(len(locs) + 1)
-    path = min_path = list(range(len(locs)))
-    dist = min_dist = locs.distance(path)
+    indexes = range(len(locs))
+    path = greedy(locs) if nn else list(indexes)
+    d = lambda x, y: locs.dist[path[x], path[y]]
     while True:
+        # generate all substrings of path
         for i, j in combinations(indexes, 2):
             yield path
-            path = min_path[:i] + min_path[i:j][::-1] + min_path[j:]
-            dist = locs.distance(path)
-            if dist < min_dist:
-                min_dist, min_path = dist, path
+            # flip substring if it shortens path
+            if d(i-1, i) + d(j-1,j) > d(i-1,j-1) + d(i, j):
+                path[i:j] = reversed(path[i:j])
 
-def three_opt(locs):
+def three_opt(locs, nn=False):
     """
     Arguments:
         locs (atlas): atlas type object
+        nn (bool): initialize path as nearest neighbor greedy path
     Yields:
         list: the current path based on 3-opt heuristic
     """
-    indexes = range(len(locs) + 1)
-    path = list(range(len(locs)))
+    indexes = range(len(locs))
+    path = greedy(locs) if nn else list(indexes)
+    distance = lambda x, y: locs.dist[path[x], path[y]]
     while True:
+        # generate all two adjacent substrings of path
         for i, j, k in combinations(indexes, 3):
             yield path
-            A, B, C = path[i - 1], path[i], path[j - 1]
-            D, E, F = path[j], path[k - 1], path[k % len(path)]
-            d0 = locs.dist[A, B] + locs.dist[C, D] + locs.dist[E, F]
+            dist = distance(i-1,i) + distance(j-1,j) + distance(k-1,k)
         
-            if d0 > locs.dist[A, C] + locs.dist[B, D] + locs.dist[E, F]:
+            # modify those substrings to be shortest
+            if dist > distance(i-1, j-1) + distance(i, j) + distance(k-1, k):
                 path[i:j] = reversed(path[i:j])
-            elif d0 > locs.dist[A, B] + locs.dist[C, E] + locs.dist[D, F]:
+            elif dist > distance(i-1, i) + distance(j-1, k-1) + distance(j, k):
                 path[j:k] = reversed(path[j:k])
-            elif d0 > locs.dist[F, B] + locs.dist[C, D] + locs.dist[E, A]:
+            elif dist > distance(k, i) + distance(j-1, j) + distance(k-1, i-1):
                 path[i:k] = reversed(path[i:k])
-            elif d0 > locs.dist[A, D] + locs.dist[E, B] + locs.dist[C, F]:
+            elif dist > distance(i-1, j) + distance(k-1, i) + distance(j-1, k):
                 path[i:k] = path[j:k] + path[i:j]
 
-def aco_final(locs, args={}, show='', until='exp', func=genetic):
+def iterate(locs, args={}, show='', until='exp', func=genetic):
     """
     Arguments:
         locs (atlas): atlas type object

@@ -24,7 +24,7 @@ def greedy(locs, start=0):
     # the path build by nearest neighbors
     path = [start]
     
-    for _ in range(len(locs) - 1):
+    for _ in range(1, len(locs)):
         # remove the distances to previous city so they aren't chosen again
         remaining_dist[:,start] = np.inf
         # index of shortest distance to city not reached yet
