@@ -109,7 +109,7 @@ def two_opt(locs):
     path = min_path = list(range(len(locs)))
     dist = min_dist = locs.distance(path)
     while True:
-        for i, j in combinations(indexes, r=2):
+        for i, j in combinations(indexes, 2):
             yield path
             path = min_path[:i] + min_path[i:j][::-1] + min_path[j:]
             dist = locs.distance(path)
@@ -117,50 +117,29 @@ def two_opt(locs):
                 min_dist, min_path = dist, path
 
 def three_opt(locs):
-    """NOT IMPLEMENTED"""
-    def all_segments(n: int):
-        """Generate all segments combinations"""
-        return ((i, j, k)
-            for i in range(n)
-            for j in range(i + 2, n)
-            for k in range(j + 2, n + (i > 0)))
-    
-    def distance(i, j):
-        return abs(j - i)
-    
-    def reverse_segment_if_better(tour, i, j, k):
-        """If reversing tour[i:j] would make the tour shorter, then do it."""
-        # Given tour [...A-B...C-D...E-F...]
-        A, B, C, D, E, F = tour[i-1], tour[i], tour[j-1], tour[j], tour[k-1], tour[k % len(tour)]
-        d0 = distance(A, B) + distance(C, D) + distance(E, F)
-        d1 = distance(A, C) + distance(B, D) + distance(E, F)
-        d2 = distance(A, B) + distance(C, E) + distance(D, F)
-        d3 = distance(A, D) + distance(E, B) + distance(C, F)
-        d4 = distance(F, B) + distance(C, D) + distance(E, A)
-    
-        if d0 > d1:
-            tour[i:j] = reversed(tour[i:j])
-            return -d0 + d1
-        elif d0 > d2:
-            tour[j:k] = reversed(tour[j:k])
-            return -d0 + d2
-        elif d0 > d4:
-            tour[i:k] = reversed(tour[i:k])
-            return -d0 + d4
-        elif d0 > d3:
-            tmp = tour[j:k] + tour[i:j]
-            tour[i:k] = tmp
-            return -d0 + d3
-        return 0
-    
-    path = range(len(locs))
+    """
+    Arguments:
+        locs (atlas): atlas type object
+    Yields:
+        list: the current path based on 3-opt heuristic
+    """
+    indexes = range(len(locs) + 1)
+    path = list(range(len(locs)))
     while True:
-        delta = 0
-        for (a, b, c) in all_segments(len(locs)):
-            delta += reverse_segment_if_better(locs, a, b, c)
-        if delta >= 0:
-            break
-    return path
+        for i, j, k in combinations(indexes, 3):
+            yield path
+            A, B, C = path[i - 1], path[i], path[j - 1]
+            D, E, F = path[j], path[k - 1], path[k % len(path)]
+            d0 = locs.dist[A, B] + locs.dist[C, D] + locs.dist[E, F]
+        
+            if d0 > locs.dist[A, C] + locs.dist[B, D] + locs.dist[E, F]:
+                path[i:j] = reversed(path[i:j])
+            elif d0 > locs.dist[A, B] + locs.dist[C, E] + locs.dist[D, F]:
+                path[j:k] = reversed(path[j:k])
+            elif d0 > locs.dist[F, B] + locs.dist[C, D] + locs.dist[E, A]:
+                path[i:k] = reversed(path[i:k])
+            elif d0 > locs.dist[A, D] + locs.dist[E, B] + locs.dist[C, F]:
+                path[i:k] = path[j:k] + path[i:j]
 
 def aco_final(locs, args={}, show='', until='exp', func=genetic):
     """
