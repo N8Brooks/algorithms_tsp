@@ -15,11 +15,11 @@ from heuristic import greedy
 from itertools import accumulate, combinations
 from bisect import bisect_left
 
-def aco(locs, count=8, factor=1.0, decay=0.66):
+def aco(locs, size=8, factor=1.0, decay=0.66):
     """
     Arguments:
         locs (atlas): atlas type object
-        count (int): how many ants to use
+        size (int): how many ants to use
         factor (float): pheromone factor for the ants must be > 0
         decay (float): decay factor for phermomone between 0. and 1.
     Yields:
@@ -35,7 +35,7 @@ def aco(locs, count=8, factor=1.0, decay=0.66):
         min_dist, min_path = float('inf'), None
         delta.fill(0.0)
         
-        for _ in range(count):
+        for _ in range(size):
             # current loc, path traveled, locs to vist yet
             cur, path, todo = 0, [0], list(range(1,len(locs)))
             
@@ -59,7 +59,50 @@ def aco(locs, count=8, factor=1.0, decay=0.66):
         # update pheromones for decay, and symmetric delta pheromones
         pheromone = pheromone * decay + delta + delta.transpose()
         
-        yield min_path    
+        yield min_path
+
+def pso(locs, size=1000, a=.6, b=.3):
+    """
+    Arguments:
+        locs (atlas): atlas type object
+        size (int): how many particles to use
+        a (float): what amount of personal best swaps to use
+        b (float): what amount of global best swaps to use
+    Yields:
+        list: path found using gentic algorithm with SCX breeding
+    """
+    length = len(locs)
+    particles = [sample(range(length), length) for _ in range(size)]
+    pbest, gbest = particles.copy(), None
+    
+    while True:
+        # find gbest
+        gbest = min(particles, key=locs.distance)
+        
+        for num, pos in enumerate(particles):
+            # copies of pbest and gbest
+            alpha, beta, deltas = pbest[num][:], gbest[:], list()
+            # chance to flop pos from diff with personal best
+            for i in range(length):
+                if pos[i] != alpha[i]:
+                    j = alpha.index(pos[i])
+                    alpha[i], alpha[j] = alpha[j], alpha[i]
+                    if random.random() < a:
+                        deltas.append((i, j))
+            # chance flop pos compared to diff with global best
+            for i in range(length):
+                if pos[i] != beta[i]:
+                    j = beta.index(pos[i])
+                    beta[i], beta[j] = beta[j], beta[i]
+                    if random.random() < b:
+                        deltas.append((i, j))
+            # flip changes found
+            for i, j in deltas:
+                pos[i], pos[j] = pos[j], pos[i]
+            # update pbest
+            pbest[num] = min(pos, pbest[num], key=locs.distance)
+            
+        yield gbest
 
 def genetic(locs, select=33, size=100):
     """
