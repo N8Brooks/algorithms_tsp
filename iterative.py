@@ -69,7 +69,7 @@ def pso(locs, size=1000, a=.6, b=.3):
         a (float): what amount of personal best swaps to use
         b (float): what amount of global best swaps to use
     Yields:
-        list: path found using gentic algorithm with SCX breeding
+        list: path found using pso algorithm after each epoch
     """
     length = len(locs)
     particles = [sample(range(length), length) for _ in range(size)]
