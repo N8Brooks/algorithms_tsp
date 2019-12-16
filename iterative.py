@@ -5,8 +5,6 @@ Created on Wed Dec 11 10:06:15 2019
 @author: Nathan
 """
 
-
-
 import numpy as np
 import random
 
@@ -15,7 +13,7 @@ from heuristic import greedy
 from itertools import accumulate, combinations
 from bisect import bisect_left
 
-def aco(locs, size=8, factor=1.0, decay=0.66):
+def aco(locs, size=8, factor=.6, decay=0.8):
     """
     Arguments:
         locs (atlas): atlas type object
@@ -61,7 +59,7 @@ def aco(locs, size=8, factor=1.0, decay=0.66):
         
         yield min_path
 
-def pso(locs, size=1000, a=.6, b=.3):
+def pso(locs, size=2048, a=.75, b=.15):
     """
     Arguments:
         locs (atlas): atlas type object
@@ -104,7 +102,7 @@ def pso(locs, size=1000, a=.6, b=.3):
             
         yield gbest
 
-def genetic(locs, select=33, size=100):
+def genetic(locs, select=20, size=100):
     """
     Arguments:
         locs (atlas): atlas type object
@@ -140,10 +138,10 @@ def genetic(locs, select=33, size=100):
 
     while True:
         # sort by fitness and yield best result
-        pop.sort(key=locs.distance)
+        pop = sorted(pop, key=locs.distance)[:select]
         yield pop[0]
         # breed those selected
-        pop = [breed(*choices(pop[:select], k=2)) for _ in range(size)]
+        pop = [breed(*choices(pop, k=2)) for _ in range(size)]
 
 def two_opt(locs, nn=False):
     """
