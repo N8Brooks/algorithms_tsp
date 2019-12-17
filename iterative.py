@@ -13,7 +13,7 @@ from heuristic import greedy
 from itertools import accumulate, combinations
 from bisect import bisect_left
 
-def aco(locs, size=8, factor=.6, decay=0.8):
+def aco(locs, size=64, factor=.85, decay=0.2):
     """
     Arguments:
         locs (atlas): atlas type object
@@ -59,7 +59,7 @@ def aco(locs, size=8, factor=.6, decay=0.8):
         
         yield min_path
 
-def pso(locs, size=2048, a=.75, b=.15):
+def pso(locs, size=1000, a=.85, b=.6):
     """
     Arguments:
         locs (atlas): atlas type object
@@ -102,7 +102,7 @@ def pso(locs, size=2048, a=.75, b=.15):
             
         yield gbest
 
-def genetic(locs, select=20, size=100):
+def genetic(locs, select=75, size=100):
     """
     Arguments:
         locs (atlas): atlas type object
@@ -189,62 +189,6 @@ def three_opt(locs, nn=False):
             elif dist > distance(i-1, j) + distance(k-1, i) + distance(j-1, k):
                 path[i:k] = path[j:k] + path[i:j]
 
-def iterate(locs, args={}, show='', until='exp', func=genetic):
-    """
-    Arguments:
-        locs (atlas): atlas type object
-        args (dict): args for the iterative tsp function call
-        show (str): which paths to display
-            '5': display best every (int) iterations
-            'improve': displays path if it is an improvement
-            'best': displays the best generation of all generated
-            'all': displays path after each iteration
-            'x': displays no paths
-        until (str): 
-            'x': how many iterations of ant colony to do
-            'exp': stops when it's run for 2x time when it last improved at x
-    Returns:
-        list: the best path
-    """
-    min_dist, min_path = float('inf'), None
-    iter_path = iter(func(locs, **args))
-    
-    def iterate_display(i):
-        nonlocal min_dist, min_path
-        path = next(iter_path)
-        dist = locs.distance(path)
-        change = False
-        
-        if dist < min_dist:
-            change = True
-            min_dist, min_path = dist, path
-            if show == 'improve':
-                locs.display(min_path,title=f'Gen: {i:3} - {min_dist:.1f}')
-        if show == 'all':
-            locs.display(path, title=f'Gen: {i:3} - {min_dist:.1f}')
-        if show.isdigit() and i % int(show) is 0:
-            locs.display(min_path, title=f'Gen: {i:3} - {min_dist:.1f}')
-        
-        return change
-    
-    if until == 'exp':
-        last_update, i = 0, 0
-        
-        while 2 * last_update >= i or i < 100:
-            i += 1
-            if iterate_display(i):
-                last_update = i
-    elif until.isdigit():
-        for i in range(int(until)):
-            iterate_display(i)
-    else:
-        print('Invalid <until> specified.')
-            
-    if show == 'best':
-        locs.display(min_path,title=f'Gen: {i:3} - {min_dist:.1f}')
-    
-    return min_path
-    
     
     
     

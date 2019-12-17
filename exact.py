@@ -82,9 +82,6 @@ def dynamic(locs):
     # trivial case otherwise call worker
     return list() if len(locs) < 1 else worker(0, 1)[1]
 
-# list of tsp algorithms in this scripts
-algorithms = [brute, recursive, dynamic]
-
 if __name__ == '__main__':
     """
     driver code for this scipt which verifies correctness
@@ -93,8 +90,9 @@ if __name__ == '__main__':
     """
     from atlas import atlas
     
+    algorithms = [brute, recursive, dynamic]
     for i in range(10):
-        locs = atlas(0, 1000, i)
+        locs = atlas(i)
         distances = [locs.distance(algo(locs)) for algo in algorithms]
         print(distances)
         assert all((distances[0] - x) < 1e-8 for x in distances[1:])
