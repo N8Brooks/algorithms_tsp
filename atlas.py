@@ -65,7 +65,7 @@ class atlas:
         plt.title(title if title else f'{self.distance(path):.1f}')
         plt.show()
     
-    def compute(self, func, show='', until=100, **kwargs):        
+    def compute(self, func, show='best', ret='', until=100, **kwargs):        
         """
         Arguments:
             func (function): tsp function to compute
@@ -74,15 +74,19 @@ class atlas:
                 'all' = show path after each call
                 'best' = show best path after all iterations
                 '' = display nothing
+            ret (str): specify what to return
+                'dist' = distance of minimum path
+                'path' = the minimum path found
+                '' = return None
             until (int): how many iterations to use if iterable
             kwargs: what arguments to pass to tsp function
         Returns:
-            list: shortest path found using tsp algorithm
+            list, float, or None: depends on what ret is - default is None
         """
-        min_path = None
+        min_path, min_dist = None, float('inf')
         # it is an iterative function
         if isinstance(func(self), Iterator):
-            min_dist, min_i = float('inf'), 0
+            min_i = 0
             for i, path in enumerate(islice(func(self, **kwargs), until)):
                 dist = self.distance(path)
                 if dist < min_dist:
@@ -96,9 +100,14 @@ class atlas:
         # it is not an iterative function
         else:
             min_path = func(self, **kwargs)
-            self.display(min_path)
+            min_dist = self.distance(min_path)
+            if show:
+                self.display(min_path)
         
-        return min_path
+        if ret == 'path':
+            return min_path
+        elif ret == 'dist':
+            return min_dist
     
     def distance(self, path):
         """

@@ -102,7 +102,7 @@ def pso(locs, size=1000, a=.85, b=.6):
             
         yield gbest
 
-def genetic(locs, select=75, size=100):
+def genetic(locs, select=100, size=100):
     """
     Arguments:
         locs (atlas): atlas type object
