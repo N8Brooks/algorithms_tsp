@@ -89,6 +89,9 @@ def bnb(locs):
     Returns:
         (list): tsp path based on branch and bound algorithm
     """
+    # data validation
+    if len(locs) < 2: return [0]*len(locs)
+    
     # helper variables for branch and bound
     min_dist, min_path = float('inf'), None
     length, cost = len(locs), locs.dist.copy()
@@ -130,7 +133,7 @@ if __name__ == '__main__':
     """
     from atlas import atlas
     
-    algorithms = [brute, recursive, dynamic]
+    algorithms = [brute, recursive, dynamic, bnb]
     for i in range(10):
         locs = atlas(i)
         distances = [locs.distance(algo(locs)) for algo in algorithms]
