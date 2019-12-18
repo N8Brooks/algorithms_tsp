@@ -96,6 +96,9 @@ if __name__ == '__main__':
         distances = [locs.distance(algo(locs)) for algo in algorithms]
         print(distances)
         assert all((distances[0] - x) < 1e-8 for x in distances[1:])
+
+
+
     
     
     
