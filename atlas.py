@@ -7,6 +7,7 @@ Created on Tue Dec 10 14:38:13 2019
 
 import numpy as np
 import matplotlib.pyplot as plt
+import random
 from scipy.spatial import distance
 from collections.abc import Iterator
 from itertools import islice
@@ -20,12 +21,21 @@ class atlas:
         Arguments:
             create (int): how many locations to randomly generate
                    (str): csv file to read x,y values from
+                   (digit): a digit str will create a circle with create points
             lo (number): lower bound for x/y coordinates
             hi (number): upper bound for x/y coordinates
         Returns:
             (atlas): an atlas type object used for locations
         """
-        if isinstance(create, str):
+        if isinstance(create, str) and create.isdigit():
+            # create int(create) number of points on circle
+            self.n, self.lo, self.hi = int(create), lo, hi
+            theta = [t for t in np.arange(0, 2 * np.pi, 2 * np.pi / self.n)]
+            random.shuffle(theta)
+            c, r = (lo + hi) / 2, hi - (lo + hi) / 2
+            self.coords = c+r*np.array([(np.sin(t),np.cos(t)) for t in theta])
+        elif isinstance(create, str):
+            # read from file
             self.coords = np.genfromtxt(create, delimiter=',')
             self.lo, self.hi = self.coords.min(), self.coords.max()
             self.n = len(self.coords)
