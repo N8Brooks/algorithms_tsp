@@ -36,7 +36,7 @@ def recursive(locs):
         # consider all nodes not gone to
         min_path, min_distance = None, float('inf')
         for x, j in enumerate(s):
-            distance, path = worker(x, s[:x] + s[x+1:])
+            distance, path = worker(j, s[:x] + s[x+1:])
             distance += locs.dist[i][j]
             if distance < min_distance:
                 min_distance, min_path = distance, path + [j]
