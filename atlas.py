@@ -7,6 +7,7 @@ Created on Tue Dec 10 14:38:13 2019
 
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib import animation
 import random
 from scipy.spatial import distance
 from collections.abc import Iterator
@@ -75,10 +76,11 @@ class atlas:
         plt.title(title if title else f'{self.distance(path):.1f}')
         plt.show()
     
-    def compute(self, func, show='best', ret='', until=100, **kwargs):        
+    def compute(self, func, show='best', ret='', save='', until=100, **kwargs):        
         """
         Arguments:
             func (function): tsp function to compute
+            until (int): how many iterations to use if iterable
             show (str): specify what to display
                 'improve' = show any path that improves
                 'all' = show path after each call
@@ -88,11 +90,21 @@ class atlas:
                 'dist' = distance of minimum path
                 'path' = the minimum path found
                 '' = return None
-            until (int): how many iterations to use if iterable
+            save (str): Setting means mp4 will be saved of images. 
             kwargs: what arguments to pass to tsp function
         Returns:
             list, float, or None: depends on what ret is - default is None
         """
+        paths = list()
+        # display
+        def display(path, dist, i=None):
+            xs, ys = zip(*map(lambda x: self.coords[x], path + [path[0]]))
+            plt.plot(xs, ys, 'ro-')
+            title = f'{dist:.1f}' if i is None else f'Gen: {i:3} - {dist:.1f}'
+            if save: paths.append((xs, ys, title))
+            plt.title(title)
+            plt.show()
+        
         min_path, min_dist = None, float('inf')
         # it is an iterative function
         if isinstance(func(self), Iterator):
@@ -102,17 +114,28 @@ class atlas:
                 if dist < min_dist:
                     min_dist, min_path, min_i = dist, path, i
                     if show == 'improve':
-                        self.display(path,title=f'Gen: {i:3} - {min_dist:.1f}')
+                        display(path, dist, i)
                 if show == 'all':
-                    self.display(path,title=f'Gen: {i:3} - {min_dist:.1f}')
+                    display(path, dist, i)
             if show == 'best':
-                self.display(min_path,title=f'Gen: {min_i:3} - {min_dist:.1f}')
+                display(min_path, min_dist, min_i)
         # it is not an iterative function
         else:
             min_path = func(self, **kwargs)
             min_dist = self.distance(min_path)
             if show:
-                self.display(min_path)
+                display(min_path, min_dist)
+        
+        if save:
+            def animate(i):
+                plt.clf()
+                plt.title(paths[i][2])
+                return plt.plot(*paths[i][:2], 'ro-')
+            
+            anim = animation.FuncAnimation(plt.gcf(),animate,frames=len(paths))
+
+            anim.save(save+'.mp4')
+
         
         if ret == 'path':
             return min_path
