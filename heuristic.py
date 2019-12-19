@@ -34,6 +34,29 @@ def greedy(locs, start=0):
     
     return path
 
+def mst(locs):
+    """
+    Aruments:
+        locs (atlas): an atlas type object
+    Returns:
+        (list): a path found using the preorder mst tsp method
+    """
+    # compute minimum spanning tree
+    mst = minimum_spanning_tree(locs.dist).toarray()
+    mst += mst.transpose()
+    
+    # preorder traversal
+    path = list()
+    def parse(x):
+        path.append(x)
+        for y in np.nonzero(mst[x])[0]:
+            if y not in path:
+                parse(y)
+    parse(0)
+    
+    return path
+        
+
 def christofide(locs, nn=False):
     """
     Aruments:
@@ -43,11 +66,10 @@ def christofide(locs, nn=False):
         (list): a path found using the christofide tsp method
     """
     # compute minimum spanning tree
-    mst = minimum_spanning_tree(locs.dist).toarray().astype(float)
+    mst = minimum_spanning_tree(locs.dist).toarray()
     
-    # find nodes with odd degree
+    # find nodes with odd degree - mst has no self connecting nodes
     odd = np.count_nonzero(mst, axis=0) + np.count_nonzero(mst, axis=1)
-    odd = (odd - (mst.diagonal() > 0)) % 2
     
     # subgraph using nodes with odd degree
     sub = np.outer(odd, odd) * locs.dist
