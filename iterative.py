@@ -155,12 +155,17 @@ def two_opt(locs, nn=False):
     path = greedy(locs) if nn else list(indexes)
     d = lambda x, y: locs.dist[path[x], path[y]]
     while True:
+        change = True
         # generate all substrings of path
         for i, j in combinations(indexes, 2):
             yield path
             # flip substring if it shortens path
             if d(i-1, i) + d(j-1,j) > d(i-1,j-1) + d(i, j):
                 path[i:j] = reversed(path[i:j])
+                change = False
+        
+        # short circuit if no changes
+        if change: return
 
 def three_opt(locs, nn=False):
     """
@@ -173,6 +178,7 @@ def three_opt(locs, nn=False):
     indexes = range(len(locs))
     path = greedy(locs) if nn else list(indexes)
     distance = lambda x, y: locs.dist[path[x], path[y]]
+    pre = locs.distance(path)
     while True:
         # generate all two adjacent substrings of path
         for i, j, k in combinations(indexes, 3):
@@ -188,9 +194,86 @@ def three_opt(locs, nn=False):
                 path[i:k] = reversed(path[i:k])
             elif dist > distance(i-1, j) + distance(k-1, i) + distance(j-1, k):
                 path[i:k] = path[j:k] + path[i:j]
+        
+        # short circuit if no changed made
+        post = locs.distance(path)
+        if pre == post:
+            return
+        else:
+            pre = post
 
-    
-    
+def sim_annealing(locs, steps=1000, preverse=0.5, temp=0.5, factor=0.999999):
+    """
+    Arguments:
+        locs (atlas): atlas type object
+        steps (int): how many steps of changes to do every loop
+        preverse (float): prefer two opt over three opt factor
+        temp (num): starting temperature
+        factor (float): how much to degrade temperature each loop
+    Yields:
+        list: the current path based on simulated annealing algorithm
+    """
+    path = list(range(len(locs)))
+    d = lambda x, y: locs.dist[path[x], path[y]]
+    while True:
+        changes = 0
+        for i in range(steps):
+            i, j, k = sorted(choices(path, k=3))
+            
+            # chance to do a two opt change
+            if preverse > random.random():
+                de = d(i - 1, j - 1) + d(i, j) - d(i - 1, i) - d(j - 1, j)
+                
+                if 0 > de or np.exp(-de/temp) > random.random():
+                    path[i:j] = reversed(path[i:j])
+                    changes += 1
+            # chance to do a three opt change
+            else:
+                de = d(i, k-1) + d(j-1, k) + d(i-1, j) - \
+                     d(i-1, i) - d(j-1, j) - d(k-1, k)
+                
+                if 0 > de or np.exp(-de/temp) > random.random():
+                    path = path[i:j] + path[k:] + path[:i] + path[j:k]
+                    changes += 1
+        
+        # update temperature return if it has stopped changing
+        if changes == 0: return
+        temp *= factor
+        yield path
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
     
 
 

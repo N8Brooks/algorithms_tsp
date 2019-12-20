@@ -5,10 +5,10 @@ Created on Tue Dec 10 14:38:13 2019
 @author: Nathan
 """
 
+import random
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import animation
-import random
 from scipy.spatial import distance
 from collections.abc import Iterator
 from itertools import islice
@@ -90,13 +90,13 @@ class atlas:
                 'dist' = distance of minimum path
                 'path' = the minimum path found
                 '' = return None
-            save (str): Setting means mp4 will be saved of images. 
+            save (str): Setting means mp4 will be saved of images titled (str)
             kwargs: what arguments to pass to tsp function
         Returns:
             list, float, or None: depends on what ret is - default is None
         """
+        # display and save paths if specified to save
         paths = list()
-        # display
         def display(path, dist, i=None):
             xs, ys = zip(*map(lambda x: self.coords[x], path + [path[0]]))
             plt.plot(xs, ys, 'ro-')
@@ -105,8 +105,8 @@ class atlas:
             plt.title(title)
             plt.show()
         
-        min_path, min_dist = None, float('inf')
         # it is an iterative function
+        min_path, min_dist = None, float('inf')
         if isinstance(func(self), Iterator):
             min_i = 0
             for i, path in enumerate(islice(func(self, **kwargs), until)):
@@ -126,6 +126,7 @@ class atlas:
             if show:
                 display(min_path, min_dist)
         
+        # save as an mp4 with save variable as title
         if save:
             def animate(i):
                 plt.clf()
@@ -133,10 +134,9 @@ class atlas:
                 return plt.plot(*paths[i][:2], 'ro-')
             
             anim = animation.FuncAnimation(plt.gcf(),animate,frames=len(paths))
-
             anim.save(save+'.mp4')
 
-        
+        # return specified type
         if ret == 'path':
             return min_path
         elif ret == 'dist':
