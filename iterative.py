@@ -7,13 +7,12 @@ Created on Wed Dec 11 10:06:15 2019
 
 import numpy as np
 import random
-
 from random import sample, choices, randrange
 from heuristic import greedy
 from itertools import accumulate, combinations
 from bisect import bisect_left
 
-def aco(locs, size=64, factor=.85, decay=0.2):
+def aco(locs, size=52, factor=.68, decay=.56):
     """
     Arguments:
         locs (atlas): atlas type object
