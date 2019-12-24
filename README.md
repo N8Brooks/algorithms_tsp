@@ -52,23 +52,23 @@ python atlas.py <options>
 	* ant colony optimization, showing improvements, save as aco.mp4, 1024 iterations, read locations from berlin52.csv
 	* ACO was actually able to find the optimal solution in this case. 
 
-![ant colony optimization of berlin fifty two dataset](idk.mp4)
+![ant colony optimization of berlin fifty two dataset](https://github.com/N8Brooks/algorithms_tsp/blob/master/examples/aco.gif)
 
 * python atlas.py --algorithm sim_annealing --show improve --save sim_annealing --until 100 --type berlin52.csv
 	* simulated annealing, showing improvements, save as sim_annealing.mp4, 100 iterations, read locations from berlin52.csv
 	* This is a really good algorithm. It is able to find the optimal solution for the berlin52 dataset regularly. 
 
-![simulated annealing on berlin fifty two dataset](idk.mp4)
+![simulated annealing on berlin fifty two dataset](https://github.com/N8Brooks/algorithms_tsp/blob/master/examples/sim_annealing.gif)
 
 * python atlas.py --algorithm greedy --save greedy --type r --count 32
 	* greedy algorithm, save as greedy.mp4, 32 random locations
 
-![greedy algorithm](idk.mp4)
+![greedy algorithm](https://github.com/N8Brooks/algorithms_tsp/blob/master/examples/greedy.png)
 
 * python atlas.py --algorithm dynamic --save dynamic --type c --count 18
 	* dynamic algorithm, save as dynamic.mp4, run on a circle of 18 locations
 
-![dynamic algorithm](idk.mp4)
+![dynamic algorithm](https://github.com/N8Brooks/algorithms_tsp/blob/master/examples/dynamic.png)
 
 ## License
 
